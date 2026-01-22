@@ -8,7 +8,7 @@ type ModelInterFace interface {
 }
 
 type LogStuct struct {
-	Text string
+	Text string `json:"Text"`
 }
 
 type ModelStuct struct {
@@ -19,11 +19,10 @@ type ModelStuct struct {
 func NewModel(UT Util.UtilStruct) (ModelStuct, error) {
 	arr := make([]string, 10, 10)
 	mdl := ModelStuct{Utility: UT, Arr: arr}
-
 	return mdl, nil
 }
 
-func (Mdl *ModelStuct) AddLog(LogStuct LogStuct) (bool, error) {
+func (Mdl *ModelStuct) AddLog(LogStuct LogStuct) (bool, error) {	
 	Mdl.Arr = append(Mdl.Arr, LogStuct.Text)
 	return true, nil
 }
