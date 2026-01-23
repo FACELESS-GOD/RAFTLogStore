@@ -29,7 +29,7 @@ func (Mdl *ModelStuct) AddLog(LogStuct LogStuct) (bool, error) {
 
 func (Mdl *ModelStuct) GetLog(Id int) (LogStuct, error) {
 	log := LogStuct{}
-	if Id < len(Mdl.Arr) {
+	if Id <= len(Mdl.Arr) {
 		log.Text = Mdl.Arr[Id]
 	}
 	return log, nil
