@@ -2,16 +2,19 @@ package Util
 
 import (
 	"errors"
+	"math/rand"
+	"time"
 
 	"github.com/FACELESS-GOD/RAFTLogStore/Helper/ServerMode"
 	"github.com/FACELESS-GOD/RAFTLogStore/Helper/State"
 )
 
 type UtilStruct struct {
-	Mode        int
-	ServerMode  int
-	Routing_URL string
-	Term        int
+	Mode            int
+	ServerMode      int
+	Routing_URL     string
+	Term            int
+	ElectionTimeout time.Duration
 }
 
 func NewUtil(Mode, Server_Mode int) (UtilStruct, error) {
@@ -28,5 +31,7 @@ func NewUtil(Mode, Server_Mode int) (UtilStruct, error) {
 	util.Mode = Mode
 	util.ServerMode = Server_Mode
 	util.Term = 1
+	offcet := 100 * rand.Int()
+	util.ElectionTimeout = time.Millisecond * time.Duration(offcet)
 	return util, nil
 }
