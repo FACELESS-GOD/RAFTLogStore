@@ -1,34 +1,42 @@
 package Model
 
-import Util "github.com/FACELESS-GOD/RAFTLogStore/Package/Utility"
+import (
+	Log "github.com/FACELESS-GOD/RAFTLogStore/Helper/LogDescription"
+	"github.com/FACELESS-GOD/RAFTLogStore/Package/GRPC_Starter"
+	Util "github.com/FACELESS-GOD/RAFTLogStore/Package/Utility"
+)
 
 type ModelInterFace interface {
-	AddLog(LogStuct) (bool, error)
-	GetLog(int) (LogStuct, error)
-}
-
-type LogStuct struct {
-	Text string `json:"Text"`
+	AddLog(Log.LogStuct) (bool, error)
+	GetLog(int) (Log.LogStuct, error)
 }
 
 type ModelStuct struct {
-	Utility Util.UtilStruct
-	Arr     []string
+	Utility     Util.UtilStruct
+	Arr         []string
+	GrpcService GRPC_Starter.GRPCServiceInterface
 }
 
-func NewModel(UT Util.UtilStruct) (ModelStuct, error) {
+func NewModel(UT Util.UtilStruct, GrpcService GRPC_Starter.GRPCServiceInterface) (ModelStuct, error) {
 	arr := make([]string, 10, 10)
-	mdl := ModelStuct{Utility: UT, Arr: arr}
+	mdl := ModelStuct{Utility: UT, Arr: arr, GrpcService: GrpcService}
 	return mdl, nil
 }
 
-func (Mdl *ModelStuct) AddLog(LogStuct LogStuct) (bool, error) {	
-	Mdl.Arr = append(Mdl.Arr, LogStuct.Text)
-	return true, nil
+func (Mdl *ModelStuct) AddLog(LogStuct Log.LogStuct) (bool, error) {
+
+	if IsAdded, err := Mdl.GrpcService.AddLog(LogStuct) ; err != nil  {
+		return false , err 		
+	} else if IsAdded != true {
+		return false , nil 		
+	} else {
+		Mdl.Arr = append(Mdl.Arr, LogStuct.Text)
+		return true, nil
+	}	
 }
 
-func (Mdl *ModelStuct) GetLog(Id int) (LogStuct, error) {
-	log := LogStuct{}
+func (Mdl *ModelStuct) GetLog(Id int) (Log.LogStuct, error) {
+	log := Log.LogStuct{}
 	if Id <= len(Mdl.Arr) {
 		log.Text = Mdl.Arr[Id]
 	}

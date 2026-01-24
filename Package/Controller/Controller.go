@@ -3,6 +3,7 @@ package Controller
 import (
 	"net/http"
 
+	Log "github.com/FACELESS-GOD/RAFTLogStore/Helper/LogDescription"
 	"github.com/FACELESS-GOD/RAFTLogStore/Helper/State"
 	"github.com/FACELESS-GOD/RAFTLogStore/Package/Model"
 	Util "github.com/FACELESS-GOD/RAFTLogStore/Package/Utility"
@@ -44,7 +45,7 @@ func (Ctx *ControllerStruct) AddLog(Gctx *gin.Context) {
 		return
 	}
 	response := NewAddLogResponse()
-	log := Model.LogStuct{}
+	log := Log.LogStuct{}
 
 	err := Gctx.ShouldBindBodyWithJSON(&log)
 

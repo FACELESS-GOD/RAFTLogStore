@@ -8,11 +8,19 @@ import (
 	"strings"
 	"testing"
 
+	Log "github.com/FACELESS-GOD/RAFTLogStore/Helper/LogDescription"
 	"github.com/FACELESS-GOD/RAFTLogStore/Package/Model"
 	Util "github.com/FACELESS-GOD/RAFTLogStore/Package/Utility"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
 )
+
+type TestGRPCStruct struct {
+}
+
+func (Ts *TestGRPCStruct) AddLog(Log.LogStuct) (bool, error) {
+	return true, nil
+}
 
 type TestControllerStruct struct {
 	suite.Suite
@@ -35,7 +43,8 @@ func (Ts *TestControllerStruct) SetupSuite() {
 		Ts.FailNow(err.Error())
 	}
 
-	mdl, err := Model.NewModel(util)
+	grpcStruct := TestGRPCStruct{}
+	mdl, err := Model.NewModel(util, &grpcStruct)
 
 	if err != nil {
 		Ts.FailNow(err.Error())
@@ -54,14 +63,13 @@ func (Ts *TestControllerStruct) SetupSuite() {
 }
 
 func (Its *TestControllerStruct) TestAddLog() {
-	log := Model.LogStuct{Text: "Hello World!"}
+	log := Log.LogStuct{Text: "Hello World!"}
 
 	jsonData, err := json.Marshal(&log)
 
 	if err != nil {
 		Its.FailNow(err.Error())
 	}
-
 
 	router := gin.Default()
 
@@ -79,14 +87,10 @@ func (Its *TestControllerStruct) TestAddLog() {
 
 	Its.Require().Equal(200, recorder.Code)
 
-	IsAdded, err := Its.Mdl.AddLog(log)
-	Its.Require().Nil(err)
-	Its.Require().Equal(IsAdded == true, true)
-
 }
 
 func (Its *TestControllerStruct) TestGetLog() {
-	LogId := GetLogRequest{ID: len(Its.Mdl.Arr)-1}
+	LogId := GetLogRequest{ID: len(Its.Mdl.Arr) - 1}
 
 	jsonData, err := json.Marshal(&LogId)
 
@@ -123,6 +127,6 @@ func (Its *TestControllerStruct) BeforeTest(SuiteName string, TestName string) {
 }
 
 func (Its *TestControllerStruct) InjectLog() {
-	log := Model.LogStuct{"New Hello World!"}
+	log := Log.LogStuct{"New Hello World!"}
 	Its.Mdl.Arr = append(Its.Mdl.Arr, log.Text)
 }

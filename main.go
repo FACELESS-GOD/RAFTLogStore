@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	Log "github.com/FACELESS-GOD/RAFTLogStore/Helper/LogDescription"
 	"github.com/FACELESS-GOD/RAFTLogStore/Helper/ServerMode"
 	"github.com/FACELESS-GOD/RAFTLogStore/Helper/State"
 	"github.com/FACELESS-GOD/RAFTLogStore/Package/Controller"
@@ -30,7 +31,12 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	mdl, err := Model.NewModel(Util)
+	logchan := make(chan Log.LogStuct, 10)
+	res := make(chan bool, 1)
+
+	grpcService, err := GRPC_Starter.NewGRPCService(logchan, res)
+
+	mdl, err := Model.NewModel(Util, &grpcService)
 
 	if err != nil {
 		log.Fatal(err.Error())
@@ -51,7 +57,7 @@ func main() {
 		}
 	}()
 
-	go GRPC_Starter.Run_GRPC_Server(Util, signalGRPCService)
+	go grpcService.Run_GRPC_Server(Util, signalGRPCService)
 
 	<-quit
 
@@ -59,11 +65,11 @@ func main() {
 
 	signalGRPCService <- 1
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown:", err) 
+		log.Fatal("Server forced to shutdown:", err)
 	}
 
 	log.Println("Server exiting")
