@@ -16,6 +16,7 @@ import (
 	"github.com/FACELESS-GOD/RAFTLogStore/Package/GRPC_Starter"
 	"github.com/FACELESS-GOD/RAFTLogStore/Package/Model"
 	"github.com/FACELESS-GOD/RAFTLogStore/Package/Router"
+	"github.com/FACELESS-GOD/RAFTLogStore/Package/ServiceRegistry"
 	Util "github.com/FACELESS-GOD/RAFTLogStore/Package/Utility"
 )
 
@@ -34,7 +35,7 @@ func main() {
 	logchan := make(chan Log.LogStuct, 10)
 	res := make(chan bool, 1)
 
-	grpcService, err := GRPC_Starter.NewGRPCService(logchan, res)
+	grpcService, err := GRPC_Starter.NewGRPCService(logchan, res, Util)
 
 	mdl, err := Model.NewModel(Util, &grpcService)
 
@@ -44,12 +45,18 @@ func main() {
 
 	ctrl, err := Controller.NewController(Util, &mdl)
 
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	router := Router.NewRouter(ctrl)
 
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: router.Handler(),
 	}
+
+	ServiceRegistry.RegisterService(Util)
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

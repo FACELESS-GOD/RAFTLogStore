@@ -13,8 +13,12 @@ type UtilStruct struct {
 	Mode            int
 	ServerMode      int
 	Routing_URL     string
-	Term            int
+	Term            int32
 	ElectionTimeout time.Duration
+	pier            []string
+	LastTouch       time.Time
+	Is_Voted        bool
+	LogId           int32
 }
 
 func NewUtil(Mode, Server_Mode int) (UtilStruct, error) {
@@ -33,5 +37,6 @@ func NewUtil(Mode, Server_Mode int) (UtilStruct, error) {
 	util.Term = 1
 	offcet := 100 * rand.Int()
 	util.ElectionTimeout = time.Millisecond * time.Duration(offcet)
+	util.Is_Voted = true
 	return util, nil
 }

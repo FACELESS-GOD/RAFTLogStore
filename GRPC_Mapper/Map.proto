@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option go_package = "Package/GRPC_Package/GRPCServicePackage";
+
+package GRPCServicePackage;
+
+//Standard RAFT RPC
+service RPCService {
+  // This is an Append RPC to Propogate logs/HeartBeat Messages from Master to Slave!
+  rpc AppendRPC(AddLogRequest) returns (AddLogResponse) {}
+  // This is a Request vote RPC which will be used for leader election
+  rpc RequestVoteRPC(RequestLogRequest) returns (RequestLogResponse) {}
+}
+
+message RequestLogRequest {
+  int32 term_id = 1;
+  int32 log_id  = 2 ;
+}
+
+message RequestLogResponse {
+  bool vote = 1 ;
+}
+
+message AddLogRequest {
+  repeated LogStructure log          = 1;
+  bool                  is_heartbeat = 2;
+}
+
+message LogStructure {
+  string text    = 1;
+  int32  term_id = 2;
+  int32  log_id  = 3;
+}
+
+message AddLogResponse {
+  bool            is_any_error   = 1;
+  repeated string error_messages = 2;
+}
