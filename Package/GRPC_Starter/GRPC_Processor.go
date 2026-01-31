@@ -6,12 +6,14 @@ import (
 	"time"
 
 	GRPCServicePackage "github.com/FACELESS-GOD/RAFTLogStore/Package/GRPC_Package/GRPC_Mapper"
+	"github.com/FACELESS-GOD/RAFTLogStore/Package/Model"
 	Util "github.com/FACELESS-GOD/RAFTLogStore/Package/Utility"
 )
 
 type Server struct {
-	mu sync.Mutex
-	Ut Util.UtilStruct
+	mu  sync.Mutex
+	Ut  Util.UtilStruct
+	Mdl Model.ModelStuct
 	GRPCServicePackage.UnimplementedRPCServiceServer
 }
 
@@ -24,10 +26,20 @@ func (Ser *Server) AppendRPC(Ctx context.Context, Req *GRPCServicePackage.AddLog
 		return &res, nil
 	} else {
 
+		Ser.mu.Lock()
+
 		for i := 0; i < len(Req.Log); i++ {
 			tobeInjectedLog := Req.Log[i]
+			if tobeInjectedLog.LogId < int32(len(Ser.Mdl.Arr)) {
+				Ser.Mdl.Arr[int32(tobeInjectedLog.LogId)] = tobeInjectedLog.Text
+			} else {
+				Ser.Mdl.Arr = append(Ser.Mdl.Arr, tobeInjectedLog.Text)
+				Ser.Mdl.Index = len(Ser.Mdl.Arr) - 1
+				Ser.Ut.LogId = int32(len(Ser.Mdl.Arr) - 1)
+			}
 
 		}
+		Ser.mu.Unlock()
 
 		res := GRPCServicePackage.AddLogResponse{
 			IsAnyError: false,
@@ -41,7 +53,9 @@ func (Ser *Server) RequestVoteRPC(Ctx context.Context, Req *GRPCServicePackage.R
 		if Req.TermId > Ser.Ut.Term {
 			Ser.Ut.Is_Voted = true
 			res := GRPCServicePackage.RequestLogResponse{
-				Vote: true,
+				Vote:   true,
+				LogId:  Ser.Ut.LogId,
+				TermId: Ser.Ut.Term,
 			}
 			return &res, nil
 		} else if Req.TermId == Ser.Ut.Term {
@@ -49,30 +63,40 @@ func (Ser *Server) RequestVoteRPC(Ctx context.Context, Req *GRPCServicePackage.R
 			if Req.LogId > Ser.Ut.LogId {
 				Ser.Ut.Is_Voted = true
 				res := GRPCServicePackage.RequestLogResponse{
-					Vote: true,
+					Vote:   true,
+					LogId:  Ser.Ut.LogId,
+					TermId: Ser.Ut.Term,
 				}
 				return &res, nil
 			} else if Req.LogId == Ser.Ut.LogId {
 				res := GRPCServicePackage.RequestLogResponse{
-					Vote: false,
+					Vote:   false,
+					LogId:  Ser.Ut.LogId,
+					TermId: Ser.Ut.Term,
 				}
 				return &res, nil
 			} else {
 				res := GRPCServicePackage.RequestLogResponse{
-					Vote: false,
+					Vote:   false,
+					LogId:  Ser.Ut.LogId,
+					TermId: Ser.Ut.Term,
 				}
 				return &res, nil
 			}
 
 		} else {
 			res := GRPCServicePackage.RequestLogResponse{
-				Vote: false,
+				Vote:   false,
+				LogId:  Ser.Ut.LogId,
+				TermId: Ser.Ut.Term,
 			}
 			return &res, nil
 		}
 	} else {
 		res := GRPCServicePackage.RequestLogResponse{
-			Vote: false,
+			Vote:   false,
+			LogId:  Ser.Ut.LogId,
+			TermId: Ser.Ut.Term,
 		}
 		return &res, nil
 	}

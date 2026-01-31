@@ -43,9 +43,8 @@ func (Ts *TestControllerStruct) SetupSuite() {
 		Ts.FailNow(err.Error())
 	}
 
-	grpcStruct := TestGRPCStruct{}
-	mdl, err := Model.NewModel(util, &grpcStruct)
-
+	mdl, err := Model.NewModel(util)
+	mdl.AddLogChan = make(chan Log.LogStuct, 10)
 	if err != nil {
 		Ts.FailNow(err.Error())
 	}

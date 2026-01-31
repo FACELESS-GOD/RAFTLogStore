@@ -1,8 +1,9 @@
 package Model
 
 import (
+	"sync"
+
 	Log "github.com/FACELESS-GOD/RAFTLogStore/Helper/LogDescription"
-	"github.com/FACELESS-GOD/RAFTLogStore/Package/GRPC_Starter"
 	Util "github.com/FACELESS-GOD/RAFTLogStore/Package/Utility"
 )
 
@@ -12,27 +13,25 @@ type ModelInterFace interface {
 }
 
 type ModelStuct struct {
-	Utility     Util.UtilStruct
-	Arr         []string
-	GrpcService GRPC_Starter.GRPCServiceInterface
+	Utility    Util.UtilStruct
+	Arr        []string
+	AddLogChan chan Log.LogStuct
+	mu         sync.Mutex
+	Index      int
 }
 
-func NewModel(UT Util.UtilStruct, GrpcService GRPC_Starter.GRPCServiceInterface) (ModelStuct, error) {
+func NewModel(UT Util.UtilStruct) (ModelStuct, error) {
 	arr := make([]string, 10, 10)
-	mdl := ModelStuct{Utility: UT, Arr: arr, GrpcService: GrpcService}
+	mdl := ModelStuct{Utility: UT, Arr: arr}
 	return mdl, nil
 }
 
 func (Mdl *ModelStuct) AddLog(LogStuct Log.LogStuct) (bool, error) {
-
-	if IsAdded, err := Mdl.GrpcService.AddLog(LogStuct) ; err != nil  {
-		return false , err 		
-	} else if IsAdded != true {
-		return false , nil 		
-	} else {
-		Mdl.Arr = append(Mdl.Arr, LogStuct.Text)
-		return true, nil
-	}	
+	Mdl.AddLogChan <- LogStuct
+	Mdl.mu.Lock()
+	Mdl.Arr = append(Mdl.Arr, LogStuct.Text)
+	Mdl.mu.Unlock()
+	return true, nil
 }
 
 func (Mdl *ModelStuct) GetLog(Id int) (Log.LogStuct, error) {

@@ -8,13 +8,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type TestGRPCStruct struct {
-}
-
-func (Ts *TestGRPCStruct) AddLog(Log.LogStuct) (bool, error) {
-	return true, nil
-}
-
 type TestStruct struct {
 	suite.Suite
 	Mdl ModelStuct
@@ -31,8 +24,9 @@ func (Ts *TestStruct) SetupSuite() {
 		Ts.FailNow(err.Error())
 	}
 
-	grpcStruct := TestGRPCStruct{}
-	mdl, err := NewModel(util, &grpcStruct)
+	mdl, err := NewModel(util)
+
+	mdl.AddLogChan = make(chan Log.LogStuct, 10)
 
 	if err != nil {
 		Ts.FailNow(err.Error())

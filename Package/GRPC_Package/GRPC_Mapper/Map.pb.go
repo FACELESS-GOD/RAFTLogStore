@@ -76,6 +76,8 @@ func (x *RequestLogRequest) GetLogId() int32 {
 type RequestLogResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Vote          bool                   `protobuf:"varint,1,opt,name=vote,proto3" json:"vote,omitempty"`
+	LogId         int32                  `protobuf:"varint,2,opt,name=log_id,json=logId,proto3" json:"log_id,omitempty"`
+	TermId        int32                  `protobuf:"varint,3,opt,name=term_id,json=termId,proto3" json:"term_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -115,6 +117,20 @@ func (x *RequestLogResponse) GetVote() bool {
 		return x.Vote
 	}
 	return false
+}
+
+func (x *RequestLogResponse) GetLogId() int32 {
+	if x != nil {
+		return x.LogId
+	}
+	return 0
+}
+
+func (x *RequestLogResponse) GetTermId() int32 {
+	if x != nil {
+		return x.TermId
+	}
+	return 0
 }
 
 type AddLogRequest struct {
@@ -288,9 +304,11 @@ const file_GRPC_Mapper_Map_proto_rawDesc = "" +
 	"\x15GRPC_Mapper/Map.proto\x12\x12GRPCServicePackage\"C\n" +
 	"\x11RequestLogRequest\x12\x17\n" +
 	"\aterm_id\x18\x01 \x01(\x05R\x06termId\x12\x15\n" +
-	"\x06log_id\x18\x02 \x01(\x05R\x05logId\"(\n" +
+	"\x06log_id\x18\x02 \x01(\x05R\x05logId\"X\n" +
 	"\x12RequestLogResponse\x12\x12\n" +
-	"\x04vote\x18\x01 \x01(\bR\x04vote\"f\n" +
+	"\x04vote\x18\x01 \x01(\bR\x04vote\x12\x15\n" +
+	"\x06log_id\x18\x02 \x01(\x05R\x05logId\x12\x17\n" +
+	"\aterm_id\x18\x03 \x01(\x05R\x06termId\"f\n" +
 	"\rAddLogRequest\x122\n" +
 	"\x03log\x18\x01 \x03(\v2 .GRPCServicePackage.LogStructureR\x03log\x12!\n" +
 	"\fis_heartbeat\x18\x02 \x01(\bR\visHeartbeat\"R\n" +

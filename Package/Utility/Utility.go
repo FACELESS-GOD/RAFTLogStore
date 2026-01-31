@@ -3,6 +3,7 @@ package Util
 import (
 	"errors"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/FACELESS-GOD/RAFTLogStore/Helper/ServerMode"
@@ -19,6 +20,7 @@ type UtilStruct struct {
 	LastTouch       time.Time
 	Is_Voted        bool
 	LogId           int32
+	Mu              sync.Mutex
 }
 
 func NewUtil(Mode, Server_Mode int) (UtilStruct, error) {
