@@ -249,6 +249,8 @@ type AddLogResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	IsAnyError    bool                   `protobuf:"varint,1,opt,name=is_any_error,json=isAnyError,proto3" json:"is_any_error,omitempty"`
 	ErrorMessages []string               `protobuf:"bytes,2,rep,name=error_messages,json=errorMessages,proto3" json:"error_messages,omitempty"`
+	LogId         int32                  `protobuf:"varint,3,opt,name=log_id,json=logId,proto3" json:"log_id,omitempty"`
+	TermId        int32                  `protobuf:"varint,4,opt,name=term_id,json=termId,proto3" json:"term_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -297,6 +299,20 @@ func (x *AddLogResponse) GetErrorMessages() []string {
 	return nil
 }
 
+func (x *AddLogResponse) GetLogId() int32 {
+	if x != nil {
+		return x.LogId
+	}
+	return 0
+}
+
+func (x *AddLogResponse) GetTermId() int32 {
+	if x != nil {
+		return x.TermId
+	}
+	return 0
+}
+
 var File_GRPC_Mapper_Map_proto protoreflect.FileDescriptor
 
 const file_GRPC_Mapper_Map_proto_rawDesc = "" +
@@ -315,11 +331,13 @@ const file_GRPC_Mapper_Map_proto_rawDesc = "" +
 	"\fLogStructure\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\x12\x17\n" +
 	"\aterm_id\x18\x02 \x01(\x05R\x06termId\x12\x15\n" +
-	"\x06log_id\x18\x03 \x01(\x05R\x05logId\"Y\n" +
+	"\x06log_id\x18\x03 \x01(\x05R\x05logId\"\x89\x01\n" +
 	"\x0eAddLogResponse\x12 \n" +
 	"\fis_any_error\x18\x01 \x01(\bR\n" +
 	"isAnyError\x12%\n" +
-	"\x0eerror_messages\x18\x02 \x03(\tR\rerrorMessages2\xc5\x01\n" +
+	"\x0eerror_messages\x18\x02 \x03(\tR\rerrorMessages\x12\x15\n" +
+	"\x06log_id\x18\x03 \x01(\x05R\x05logId\x12\x17\n" +
+	"\aterm_id\x18\x04 \x01(\x05R\x06termId2\xc5\x01\n" +
 	"\n" +
 	"RPCService\x12T\n" +
 	"\tAppendRPC\x12!.GRPCServicePackage.AddLogRequest\x1a\".GRPCServicePackage.AddLogResponse\"\x00\x12a\n" +

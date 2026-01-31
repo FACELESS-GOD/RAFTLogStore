@@ -18,7 +18,9 @@ message RequestLogRequest {
 }
 
 message RequestLogResponse {
-  bool vote = 1 ;
+  bool  vote    = 1 ;
+  int32 log_id  = 2;
+  int32 term_id = 3;
 }
 
 message AddLogRequest {
@@ -35,4 +37,6 @@ message LogStructure {
 message AddLogResponse {
   bool            is_any_error   = 1;
   repeated string error_messages = 2;
+  int32           log_id         = 3;
+  int32           term_id        = 4;
 }

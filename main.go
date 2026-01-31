@@ -32,16 +32,18 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	logchan := make(chan Log.LogStuct, 10)
+	logchan := make(chan Log.LogStuct, 0)
 	res := make(chan bool, 1)
 
-	grpcService, err := GRPC_Starter.NewGRPCService(logchan, res, Util)
-
-	mdl, err := Model.NewModel(Util, &grpcService)
+	mdl, err := Model.NewModel(Util)
 
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+	mdl.AddLogChan = logchan
+
+	grpcService, err := GRPC_Starter.NewGRPCService(logchan, res, Util, mdl)
 
 	ctrl, err := Controller.NewController(Util, &mdl)
 
@@ -56,13 +58,23 @@ func main() {
 		Handler: router.Handler(),
 	}
 
-	ServiceRegistry.RegisterService(Util)
+	service, err := ServiceRegistry.RegisterService(Util)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	grpcService.Service = service
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Listen: %s\n", err)
 		}
 	}()
+
+	go grpcService.RecurAddLog()
+
+	go grpcService.ElectionsCheck()
 
 	go grpcService.Run_GRPC_Server(Util, signalGRPCService)
 
