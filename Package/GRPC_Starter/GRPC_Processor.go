@@ -18,6 +18,9 @@ type Server struct {
 }
 
 func (Ser *Server) AppendRPC(Ctx context.Context, Req *GRPCServicePackage.AddLogRequest) (*GRPCServicePackage.AddLogResponse, error) {
+	Ser.mu.Lock()
+	defer Ser.mu.Unlock()
+
 	Ser.Ut.LastTouch = time.Now()
 	if Req.IsHeartbeat == true {
 		res := GRPCServicePackage.AddLogResponse{
@@ -25,8 +28,6 @@ func (Ser *Server) AppendRPC(Ctx context.Context, Req *GRPCServicePackage.AddLog
 		}
 		return &res, nil
 	} else {
-
-		Ser.mu.Lock()
 
 		for i := 0; i < len(Req.Log); i++ {
 			tobeInjectedLog := Req.Log[i]
@@ -49,9 +50,12 @@ func (Ser *Server) AppendRPC(Ctx context.Context, Req *GRPCServicePackage.AddLog
 }
 
 func (Ser *Server) RequestVoteRPC(Ctx context.Context, Req *GRPCServicePackage.RequestLogRequest) (*GRPCServicePackage.RequestLogResponse, error) {
+	Ser.mu.Lock()
+	defer Ser.mu.Unlock()
+
 	if Ser.Ut.Is_Voted != true {
 		if Req.TermId > Ser.Ut.Term {
-			Ser.Ut.Is_Voted = true
+			Ser.Ut.Term = Req.TermId
 			res := GRPCServicePackage.RequestLogResponse{
 				Vote:   true,
 				LogId:  Ser.Ut.LogId,
@@ -76,6 +80,7 @@ func (Ser *Server) RequestVoteRPC(Ctx context.Context, Req *GRPCServicePackage.R
 				}
 				return &res, nil
 			} else {
+
 				res := GRPCServicePackage.RequestLogResponse{
 					Vote:   false,
 					LogId:  Ser.Ut.LogId,
