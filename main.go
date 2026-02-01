@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -21,7 +22,8 @@ import (
 )
 
 func main() {
-	Util, err := Util.NewUtil(State.Leader, ServerMode.Test)
+	mu := sync.Mutex{}
+	Util, err := Util.NewUtil(State.Follower, ServerMode.Test, &mu)
 
 	quit := make(chan os.Signal, 1)
 	signalGRPCService := make(chan int, 1)
@@ -35,7 +37,7 @@ func main() {
 	logchan := make(chan Log.LogStuct, 0)
 	res := make(chan bool, 1)
 
-	mdl, err := Model.NewModel(Util)
+	mdl, err := Model.NewModel(Util, &mu)
 
 	if err != nil {
 		log.Fatal(err.Error())
@@ -43,7 +45,7 @@ func main() {
 
 	mdl.AddLogChan = logchan
 
-	grpcService, err := GRPC_Starter.NewGRPCService(logchan, res, Util, mdl)
+	grpcService, err := GRPC_Starter.NewGRPCService(logchan, res, Util, mdl, &mu)
 
 	ctrl, err := Controller.NewController(Util, &mdl)
 

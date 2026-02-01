@@ -28,18 +28,19 @@ type GRPCService struct {
 	Mdl             Model.ModelStuct
 	Service         ServiceRegistry.Service
 	TableNex        map[string]int
-	mu              sync.Mutex
+	mu              *sync.Mutex
 	ChildCount      int
 	TableConn       map[string]*grpc.ClientConn
 	TableConnClient map[string]GRPCServicePackage.RPCServiceClient
 }
 
-func NewGRPCService(req chan Log.LogStuct, res chan bool, Ut Util.UtilStruct, Mdl Model.ModelStuct) (GRPCService, error) {
+func NewGRPCService(req chan Log.LogStuct, res chan bool, Ut Util.UtilStruct, Mdl Model.ModelStuct, Mu *sync.Mutex) (GRPCService, error) {
 	grc := GRPCService{
 		AddRequest: req,
 		Response:   res,
 		Ut:         Ut,
 		Mdl:        Mdl,
+		mu:         Mu,
 	}
 	return grc, nil
 }
@@ -116,11 +117,9 @@ func (Grc *GRPCService) RecurAddLog() {
 
 			payload.Log = append(payload.Log, &grpcLog)
 
-			ctx, cancelFunc := context.WithCancel(context.Background())
+			ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*100)
 
 			res, err := rpcServiceClient.AppendRPC(ctx, &payload)
-
-			defer cancelFunc()
 
 			if err != nil {
 				log.Println(err)
@@ -229,7 +228,6 @@ func (Grc *GRPCService) Elector(Address string, Wg *sync.WaitGroup) {
 		Grc.mu.Unlock()
 
 	}
-
 
 	payload := GRPCServicePackage.RequestLogRequest{
 		TermId: Grc.Ut.Term,

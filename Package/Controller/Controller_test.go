@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	Log "github.com/FACELESS-GOD/RAFTLogStore/Helper/LogDescription"
@@ -37,13 +38,13 @@ func TestMain(m *testing.T) {
 }
 
 func (Ts *TestControllerStruct) SetupSuite() {
-	util, err := Util.NewUtil(1, 1)
+	util, err := Util.NewUtil(1, 1, &sync.Mutex{})
 
 	if err != nil {
 		Ts.FailNow(err.Error())
 	}
 
-	mdl, err := Model.NewModel(util)
+	mdl, err := Model.NewModel(util, &sync.Mutex{})
 	mdl.AddLogChan = make(chan Log.LogStuct, 10)
 	if err != nil {
 		Ts.FailNow(err.Error())

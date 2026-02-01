@@ -20,10 +20,10 @@ type UtilStruct struct {
 	LastTouch       time.Time
 	Is_Voted        bool
 	LogId           int32
-	Mu              sync.Mutex
+	Mu              *sync.Mutex
 }
 
-func NewUtil(Mode, Server_Mode int) (UtilStruct, error) {
+func NewUtil(Mode, Server_Mode int, Mu *sync.Mutex) (UtilStruct, error) {
 	util := UtilStruct{}
 
 	if Mode != State.Leader && Mode != State.Candidate && Mode != State.Follower {
@@ -40,5 +40,6 @@ func NewUtil(Mode, Server_Mode int) (UtilStruct, error) {
 	offcet := 100 * rand.Int()
 	util.ElectionTimeout = time.Millisecond * time.Duration(offcet)
 	util.Is_Voted = true
+	util.Mu = Mu
 	return util, nil
 }

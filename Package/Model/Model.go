@@ -16,13 +16,13 @@ type ModelStuct struct {
 	Utility    Util.UtilStruct
 	Arr        []string
 	AddLogChan chan Log.LogStuct
-	mu         sync.Mutex
+	mu         *sync.Mutex
 	Index      int
 }
 
-func NewModel(UT Util.UtilStruct) (ModelStuct, error) {
-	arr := make([]string, 10, 10)
-	mdl := ModelStuct{Utility: UT, Arr: arr}
+func NewModel(UT Util.UtilStruct, Mu *sync.Mutex) (ModelStuct, error) {
+	arr := make([]string, 10)
+	mdl := ModelStuct{Utility: UT, Arr: arr, mu: Mu}
 	return mdl, nil
 }
 

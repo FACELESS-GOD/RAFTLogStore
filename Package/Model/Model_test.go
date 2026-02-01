@@ -1,6 +1,7 @@
 package Model
 
 import (
+	"sync"
 	"testing"
 
 	Log "github.com/FACELESS-GOD/RAFTLogStore/Helper/LogDescription"
@@ -18,13 +19,13 @@ func TestMain(m *testing.T) {
 }
 
 func (Ts *TestStruct) SetupSuite() {
-	util, err := Util.NewUtil(2, 1)
+	util, err := Util.NewUtil(2, 1, &sync.Mutex{})
 
 	if err != nil {
 		Ts.FailNow(err.Error())
 	}
 
-	mdl, err := NewModel(util)
+	mdl, err := NewModel(util, &sync.Mutex{})
 
 	mdl.AddLogChan = make(chan Log.LogStuct, 10)
 

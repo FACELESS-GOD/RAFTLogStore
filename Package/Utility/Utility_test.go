@@ -1,6 +1,7 @@
 package Util
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -16,19 +17,19 @@ func TestMain(m *testing.T) {
 
 func (Its *TestStruct) TestNewUtil() {
 
-	util, err := NewUtil(0, 0)
+	util, err := NewUtil(0, 0, &sync.Mutex{})
 	Its.Require().NotNil(err)
 	Its.Require().NotNil(util)
 
-	util, err = NewUtil(0, 1)
+	util, err = NewUtil(0, 1, &sync.Mutex{})
 	Its.Require().NotNil(err)
 	Its.Require().NotNil(util)
 
-	util, err = NewUtil(1, 0)
+	util, err = NewUtil(1, 0, &sync.Mutex{})
 	Its.Require().NotNil(err)
 	Its.Require().NotNil(util)
 
-	util, err = NewUtil(2, 1)
+	util, err = NewUtil(2, 1, &sync.Mutex{})
 	Its.Require().Nil(err)
 	Its.Require().NotNil(util)
 
