@@ -117,7 +117,7 @@ func (Grc *GRPCService) RecurAddLog() {
 
 			payload.Log = append(payload.Log, &grpcLog)
 
-			ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*100)
+			ctx := context.WithoutCancel(context.Background())
 
 			res, err := rpcServiceClient.AppendRPC(ctx, &payload)
 
