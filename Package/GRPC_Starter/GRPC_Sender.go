@@ -38,15 +38,33 @@ func (Grc *GRPCService) DiscoverService() {}
 func (Grc *GRPCService) UpdateTableNex(Address string, Wg *sync.WaitGroup) {
 	defer Wg.Done()
 
-	conn, err := grpc.NewClient(Address, grpc.WithMaxCallAttempts(3))
+	var rpcServiceClient GRPCServicePackage.RPCServiceClient
 
-	if err != nil {
-		log.Println(err)
+	_, isExits := Grc.TableConnClient[Address]
+
+	if isExits == true {
+
+		rpcServiceClient = Grc.TableConnClient[Address]
+
+	} else {
+
+		var conn *grpc.ClientConn
+		
+		conn, err := grpc.NewClient(Address, grpc.WithMaxCallAttempts(3))
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		rpcServiceClient = GRPCServicePackage.NewRPCServiceClient(conn)
+
+		Grc.mu.Lock()
+		Grc.TableConn[Address] = conn
+		Grc.TableConnClient[Address] = rpcServiceClient
+		Grc.mu.Unlock()
+
 	}
-
-	defer conn.Close()
-
-	rpcServiceClient := GRPCServicePackage.NewRPCServiceClient(conn)
 
 	payload := GRPCServicePackage.AddLogRequest{
 		IsHeartbeat: true,
@@ -68,9 +86,11 @@ func (Grc *GRPCService) UpdateTableNex(Address string, Wg *sync.WaitGroup) {
 
 	if currLog != int(childLog) {
 		if currLog < int(childLog) {
+
 			Grc.mu.Lock()
 			Grc.TableNex[Address] = int(childLog)
 			Grc.mu.Unlock()
+
 			Grc.UpdateLog(ctx, rpcServiceClient, int(childLog))
 		}
 	}
@@ -82,13 +102,12 @@ func (Grc *GRPCService) UpdateLog(Ctx context.Context, RpcServiceClient GRPCServ
 		IsHeartbeat: false,
 	}
 	for i := ChildLogId; i < int(Grc.Ut.LogId); i++ {
-		Grc.mu.Lock()
+
 		log := GRPCServicePackage.LogStructure{
 			LogId:  int32(i),
 			TermId: Grc.Ut.Term,
 			Text:   Grc.Mdl.Arr[i],
 		}
-		Grc.mu.Unlock()
 
 		req.Log = append(req.Log, &log)
 	}

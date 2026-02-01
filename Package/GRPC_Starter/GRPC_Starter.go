@@ -22,14 +22,16 @@ type GRPCServiceInterface interface {
 }
 
 type GRPCService struct {
-	AddRequest chan Log.LogStuct
-	Response   chan bool
-	Ut         Util.UtilStruct
-	Mdl        Model.ModelStuct
-	Service    ServiceRegistry.Service
-	TableNex   map[string]int
-	mu         sync.Mutex
-	ChildCount int
+	AddRequest      chan Log.LogStuct
+	Response        chan bool
+	Ut              Util.UtilStruct
+	Mdl             Model.ModelStuct
+	Service         ServiceRegistry.Service
+	TableNex        map[string]int
+	mu              sync.Mutex
+	ChildCount      int
+	TableConn       map[string]*grpc.ClientConn
+	TableConnClient map[string]GRPCServicePackage.RPCServiceClient
 }
 
 func NewGRPCService(req chan Log.LogStuct, res chan bool, Ut Util.UtilStruct, Mdl Model.ModelStuct) (GRPCService, error) {
@@ -76,15 +78,32 @@ func (Grc *GRPCService) RecurAddLog() {
 
 		for _, Address := range Grc.Service.ServerList {
 
-			conn, err := grpc.NewClient(Address, grpc.WithMaxCallAttempts(3))
+			var rpcServiceClient GRPCServicePackage.RPCServiceClient
 
-			if err != nil {
-				log.Println(err)
+			_, is_Exists := Grc.TableConnClient[Address]
+
+			if is_Exists == true {
+
+				rpcServiceClient = Grc.TableConnClient[Address]
+
+			} else {
+
+				var conn *grpc.ClientConn
+				conn, err := grpc.NewClient(Address, grpc.WithMaxCallAttempts(3))
+
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+
+				rpcServiceClient = GRPCServicePackage.NewRPCServiceClient(conn)
+
+				Grc.mu.Lock()
+				Grc.TableConn[Address] = conn
+				Grc.TableConnClient[Address] = rpcServiceClient
+				Grc.mu.Unlock()
+
 			}
-
-			defer conn.Close()
-
-			rpcServiceClient := GRPCServicePackage.NewRPCServiceClient(conn)
 
 			payload := GRPCServicePackage.AddLogRequest{
 				IsHeartbeat: false,
@@ -121,6 +140,7 @@ func (Grc *GRPCService) ElectionsCheck() {
 	for {
 		currTime := time.Now()
 		if currTime.Sub(Grc.Ut.LastTouch) > Grc.Ut.ElectionTimeout {
+
 			Grc.Ut.Mu.Lock()
 			Grc.Ut.Mode = State.Candidate
 			Grc.Ut.Is_Voted = true
@@ -133,19 +153,24 @@ func (Grc *GRPCService) ElectionsCheck() {
 			Grc.Ut.LastTouch = time.Now()
 
 			if is_elected == true {
+
 				Grc.Ut.Mu.Lock()
 				Grc.Ut.Mode = State.Leader
 				Grc.Ut.Mu.Unlock()
+
 				wg := sync.WaitGroup{}
 				for _, serverAddress := range Grc.Service.ServerList {
 					go Grc.UpdateTableNex(serverAddress, &wg)
 					wg.Add(1)
 				}
 				wg.Wait()
+
 			} else {
+
 				Grc.Ut.Mu.Lock()
 				Grc.Ut.Mode = State.Follower
 				Grc.Ut.Mu.Unlock()
+
 				if is_tie == true {
 					Grc.Ut.LastTouch = time.Now().Add(time.Millisecond * time.Duration(rand.Int()))
 				}
@@ -178,15 +203,33 @@ func (Grc *GRPCService) BeginElection() (bool, bool) {
 
 func (Grc *GRPCService) Elector(Address string, Wg *sync.WaitGroup) {
 	defer Wg.Done()
-	conn, err := grpc.NewClient(Address, grpc.WithMaxCallAttempts(3))
+	var rpcServiceClient GRPCServicePackage.RPCServiceClient
 
-	if err != nil {
-		log.Println(err)
+	_, is_Exists := Grc.TableConnClient[Address]
+
+	if is_Exists == true {
+
+		rpcServiceClient = Grc.TableConnClient[Address]
+
+	} else {
+
+		var conn *grpc.ClientConn
+		conn, err := grpc.NewClient(Address, grpc.WithMaxCallAttempts(3))
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		rpcServiceClient = GRPCServicePackage.NewRPCServiceClient(conn)
+
+		Grc.mu.Lock()
+		Grc.TableConn[Address] = conn
+		Grc.TableConnClient[Address] = rpcServiceClient
+		Grc.mu.Unlock()
+
 	}
 
-	defer conn.Close()
-
-	rpcServiceClient := GRPCServicePackage.NewRPCServiceClient(conn)
 
 	payload := GRPCServicePackage.RequestLogRequest{
 		TermId: Grc.Ut.Term,
