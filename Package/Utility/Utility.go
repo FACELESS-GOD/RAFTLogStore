@@ -44,3 +44,5 @@ func NewUtil(Mode, Server_Mode int, Mu *sync.Mutex) (UtilStruct, error) {
 	util.Mu = Mu
 	return util, nil
 }
+
+

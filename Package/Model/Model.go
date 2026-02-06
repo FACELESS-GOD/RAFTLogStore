@@ -41,3 +41,5 @@ func (Mdl *ModelStuct) GetLog(Id int) (Log.LogStuct, error) {
 	}
 	return log, nil
 }
+
+func (Mdl *ModelStuct) PersistData() {}
