@@ -19,6 +19,7 @@ type UtilStruct struct {
 	pier            []string
 	LastTouch       time.Time
 	Is_Voted        bool
+	VotedForWhom    int32
 	LogId           int32
 	Mu              *sync.Mutex
 }
@@ -39,7 +40,7 @@ func NewUtil(Mode, Server_Mode int, Mu *sync.Mutex) (UtilStruct, error) {
 	util.Term = 1
 	offcet := 100 * rand.Int()
 	util.ElectionTimeout = time.Millisecond * time.Duration(offcet)
-	util.Is_Voted = true
+	util.Is_Voted = false
 	util.Mu = Mu
 	return util, nil
 }

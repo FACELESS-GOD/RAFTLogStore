@@ -26,7 +26,10 @@ func main() {
 	Util, err := Util.NewUtil(State.Follower, ServerMode.Test, &mu)
 
 	quit := make(chan os.Signal, 1)
+	defer close(quit)
+
 	signalGRPCService := make(chan int, 1)
+	defer close(signalGRPCService)
 
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
@@ -34,21 +37,21 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	logchan := make(chan Log.LogStuct, 0)
+	logchan := make(chan Log.LogStuct)
+	defer close(logchan)
+
 	res := make(chan bool, 1)
+	defer close(res)
 
 	mdl, err := Model.NewModel(Util, &mu)
-
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
-	mdl.AddLogChan = logchan
+	mdl.AddLogChan = logchan	
 
 	grpcService, err := GRPC_Starter.NewGRPCService(logchan, res, Util, mdl, &mu)
 
 	ctrl, err := Controller.NewController(Util, &mdl)
-
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -60,14 +63,12 @@ func main() {
 		Handler: router.Handler(),
 	}
 
-	service, err := ServiceRegistry.RegisterService(Util)
-
+	service, err := ServiceRegistry.RegisterService(Util, mdl)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
 	grpcService.Service = service
-
+	
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Listen: %s\n", err)

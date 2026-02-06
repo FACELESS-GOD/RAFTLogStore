@@ -23,6 +23,13 @@ func (Ser *Server) AppendRPC(Ctx context.Context, Req *GRPCServicePackage.AddLog
 
 	Ser.Ut.LastTouch = time.Now()
 	if Req.IsHeartbeat == true {
+
+		Ser.Ut.VotedForWhom = Req.TermId
+
+		Ser.Ut.Term = Req.TermId
+
+		Ser.Ut.Is_Voted = false
+
 		res := GRPCServicePackage.AddLogResponse{
 			IsAnyError: false,
 		}
@@ -56,6 +63,11 @@ func (Ser *Server) RequestVoteRPC(Ctx context.Context, Req *GRPCServicePackage.R
 	if Ser.Ut.Is_Voted != true {
 		if Req.TermId > Ser.Ut.Term {
 			Ser.Ut.Term = Req.TermId
+
+			Ser.Ut.Is_Voted = true
+
+			Ser.Ut.VotedForWhom = Req.TermId
+
 			res := GRPCServicePackage.RequestLogResponse{
 				Vote:   true,
 				LogId:  Ser.Ut.LogId,
@@ -65,12 +77,17 @@ func (Ser *Server) RequestVoteRPC(Ctx context.Context, Req *GRPCServicePackage.R
 		} else if Req.TermId == Ser.Ut.Term {
 
 			if Req.LogId > Ser.Ut.LogId {
+
 				Ser.Ut.Is_Voted = true
+
+				Ser.Ut.VotedForWhom = Req.TermId
+
 				res := GRPCServicePackage.RequestLogResponse{
 					Vote:   true,
 					LogId:  Ser.Ut.LogId,
 					TermId: Ser.Ut.Term,
 				}
+
 				return &res, nil
 			} else if Req.LogId == Ser.Ut.LogId {
 				res := GRPCServicePackage.RequestLogResponse{

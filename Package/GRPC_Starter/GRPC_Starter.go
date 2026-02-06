@@ -144,6 +144,7 @@ func (Grc *GRPCService) ElectionsCheck() {
 			Grc.Ut.Mode = State.Candidate
 			Grc.Ut.Is_Voted = true
 			Grc.Ut.Term = Grc.Ut.Term + 1
+			Grc.Ut.VotedForWhom = Grc.Ut.Term
 			Grc.ChildCount = 0
 			Grc.Ut.Mu.Unlock()
 

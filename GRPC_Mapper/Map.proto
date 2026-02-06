@@ -26,6 +26,8 @@ message RequestLogResponse {
 message AddLogRequest {
   repeated LogStructure log          = 1;
   bool                  is_heartbeat = 2;
+  int32                 term_id      = 3;
+  int32                 log_id       = 4;
 }
 
 message LogStructure {

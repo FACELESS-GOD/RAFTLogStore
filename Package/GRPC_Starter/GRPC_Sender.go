@@ -68,6 +68,7 @@ func (Grc *GRPCService) UpdateTableNex(Address string, Wg *sync.WaitGroup) {
 
 	payload := GRPCServicePackage.AddLogRequest{
 		IsHeartbeat: true,
+		TermId: Grc.Ut.Term,
 	}
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
